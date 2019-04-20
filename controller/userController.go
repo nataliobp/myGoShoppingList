@@ -6,16 +6,25 @@ import (
 	"github.com/nataliobp/myGoShoppingList/identityAccess"
 	"net/http"
 	"regexp"
+	"strconv"
 )
 
 type UserController struct {
 	Container *core.Container
 }
 
-func (u *UserController) SignUp(writer http.ResponseWriter, request *http.Request) {
+func (u *UserController) ManageUser(writer http.ResponseWriter, request *http.Request) {
+	if request.Method == "POST" {
+		u.createUser(request, writer)
+	} else if request.Method == "GET" {
+		u.getUserById(request, writer)
+	}
+}
+
+func (u *UserController) createUser(request *http.Request, writer http.ResponseWriter) {
 	decoder := json.NewDecoder(request.Body)
-	userVM := UserVM{}
-	e := decoder.Decode(&userVM)
+	signUpVM := SignUpVM{}
+	e := decoder.Decode(&signUpVM)
 
 	if e != nil {
 		http.Error(writer, e.Error(), 500)
@@ -23,13 +32,36 @@ func (u *UserController) SignUp(writer http.ResponseWriter, request *http.Reques
 	}
 
 	singUpService := u.Container.Get("signUpService").(*identityAccess.SignUpService)
-	singUpService.SignUp(userVM.Email, userVM.Password)
+	id := singUpService.SignUp(signUpVM.Email, signUpVM.Password)
 
 	writer.WriteHeader(http.StatusCreated)
+	_, _ = writer.Write([]byte("/users/" + strconv.FormatInt(id, 10)))
+}
+
+func (u *UserController) getUserById(request *http.Request, writer http.ResponseWriter) {
+	pattern, _ := regexp.Compile(`/users/(\d+)`)
+	matches := pattern.FindStringSubmatch(request.URL.Path)
+	id, _ := strconv.ParseInt(matches[1], 10, 64)
+
+	findUserService := u.Container.Get("findUserService").(*identityAccess.FindUserService)
+	userById := findUserService.FindById(id)
+
+	if userById == nil {
+		http.NotFound(writer, request)
+		return
+	}
+	userVM := UserVM{Id: userById.Id, Email: userById.Email}
+	writer.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(writer)
+	e := encoder.Encode(userVM)
+
+	if e != nil {
+		http.Error(writer, e.Error(), 500)
+	}
 }
 
 func (u *UserController) GetUserByEmail(writer http.ResponseWriter, request *http.Request) {
-	pattern, _ := regexp.Compile(`/users/email/([\w\.@]+)`)
+	pattern, _ := regexp.Compile(`/users/email/([\w.@]+)`)
 	matches := pattern.FindStringSubmatch(request.URL.Path)
 	email := matches[1]
 
@@ -41,8 +73,7 @@ func (u *UserController) GetUserByEmail(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	userVM := UserVM{Email: userByEmail.Email, Password: userByEmail.Password}
-
+	userVM := UserVM{Id: userByEmail.Id, Email: userByEmail.Email}
 	writer.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(writer)
 	e := encoder.Encode(userVM)

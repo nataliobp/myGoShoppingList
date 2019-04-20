@@ -20,7 +20,8 @@ func main() {
 	userController := controller.UserController{Container: container}
 
 	http.HandleFunc("/", homeController.Home)
-	http.HandleFunc("/users", userController.SignUp)
+	http.HandleFunc("/users", userController.ManageUser)
+	http.HandleFunc("/users/", userController.ManageUser)
 	http.HandleFunc("/users/email/", userController.GetUserByEmail)
 
 	_ = http.ListenAndServe(":8001", nil)

@@ -15,3 +15,7 @@ func (s *FindUserService) FindAll() []User {
 func (s *FindUserService) FindByEmail(email string) *User {
 	return s.userRepository.findByEmail(email)
 }
+
+func (s *FindUserService) FindById(id int64) *User {
+	return s.userRepository.findById(id)
+}
