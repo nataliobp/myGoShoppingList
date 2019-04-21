@@ -24,5 +24,5 @@ func main() {
 	http.HandleFunc("/users/", userController.ManageUser)
 	http.HandleFunc("/users/email/", userController.GetUserByEmail)
 
-	_ = http.ListenAndServe(":8001", nil)
+	_ = http.ListenAndServe(":8001", new(core.LoggingMiddleware))
 }
