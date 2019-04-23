@@ -44,9 +44,9 @@ func (u *UserController) getUserById(request *http.Request, writer http.Response
 	id, _ := strconv.ParseInt(matches[1], 10, 64)
 
 	findUserService := u.Container.Get("findUserService").(*identityAccess.FindUserService)
-	userById := findUserService.FindById(id)
+	userById, err := findUserService.FindById(id)
 
-	if userById == nil {
+	if err != nil {
 		http.NotFound(writer, request)
 		return
 	}
@@ -66,9 +66,9 @@ func (u *UserController) GetUserByEmail(writer http.ResponseWriter, request *htt
 	email := matches[1]
 
 	findUserService := u.Container.Get("findUserService").(*identityAccess.FindUserService)
-	userByEmail := findUserService.FindByEmail(email)
+	userByEmail, err := findUserService.FindByEmail(email)
 
-	if userByEmail == nil {
+	if err != nil {
 		http.NotFound(writer, request)
 		return
 	}

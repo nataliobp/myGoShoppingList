@@ -11,7 +11,7 @@ type LoggingMiddleware struct {
 	Next http.Handler
 }
 
-func (m* LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request){
+func (m *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if nil == m.Next {
 		m.Next = http.DefaultServeMux
 	}
