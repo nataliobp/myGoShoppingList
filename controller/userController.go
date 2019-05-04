@@ -32,7 +32,7 @@ func (u *UserController) createUser(request *http.Request, writer http.ResponseW
 	}
 
 	singUpService := u.Container.Get("signUpService").(*identityAccess.SignUpService)
-	id := singUpService.SignUp(signUpVM.Email, signUpVM.Password)
+	id := singUpService.SignUp(signUpVM.Name, signUpVM.Email, signUpVM.Password)
 
 	writer.WriteHeader(http.StatusCreated)
 	_, _ = writer.Write([]byte("/users/" + strconv.FormatInt(id, 10)))
@@ -50,7 +50,7 @@ func (u *UserController) getUserById(request *http.Request, writer http.Response
 		http.NotFound(writer, request)
 		return
 	}
-	userVM := UserVM{Id: userById.Id, Email: userById.Email}
+	userVM := UserVM{Id: userById.Id, Name: userById.Name, Email: userById.Email}
 	writer.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(writer)
 	e := encoder.Encode(userVM)

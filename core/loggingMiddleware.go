@@ -19,8 +19,7 @@ func (m *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	requestString := r.Method + " " + r.URL.RequestURI()
 
 	if r.Body != nil {
-		var bodyBytes []byte
-		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		bodyBytes, _ := ioutil.ReadAll(r.Body)
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 		requestString += "\n" + string(bodyBytes)
 	}

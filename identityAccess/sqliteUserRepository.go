@@ -17,13 +17,13 @@ func (r *SqliteUserRepository) save(user User) int64 {
 	if err != nil {
 		log.Fatal(err)
 	}
-	stmt, err := tx.Prepare("insert into users(email, password) values(?, ?)")
+	stmt, err := tx.Prepare("insert into users(name, email, password) values(?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(user.Email, user.Password)
+	result, err := stmt.Exec(user.Name, user.Email, user.Password)
 
 	if err != nil {
 		log.Fatal(err)
@@ -41,20 +41,19 @@ func (r *SqliteUserRepository) save(user User) int64 {
 
 func (r *SqliteUserRepository) findAll() []User {
 	var users []User
-	rows, err := r.db.Query("select email, password from users")
+	rows, err := r.db.Query("select name, email, password from users")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var email string
-		var password string
-		err = rows.Scan(&email, &password)
+		user := &User{}
+		err = rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		users = append(users, User{Email: email, Password: password})
+		users = append(users, *user)
 	}
 	err = rows.Err()
 	if err != nil {
@@ -66,8 +65,8 @@ func (r *SqliteUserRepository) findAll() []User {
 
 func (r *SqliteUserRepository) findByEmail(email string) (*User, error) {
 	user := &User{}
-	row := r.db.QueryRow(`SELECT id, email, password FROM users WHERE email = $1`, email)
-	err := row.Scan(&user.Id, &user.Email, &user.Password)
+	row := r.db.QueryRow(`SELECT id, name, email, password FROM users WHERE email = $1`, email)
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -81,8 +80,8 @@ func (r *SqliteUserRepository) findByEmail(email string) (*User, error) {
 
 func (r *SqliteUserRepository) findById(id int64) (*User, error) {
 	user := &User{}
-	row := r.db.QueryRow(`SELECT id, email, password FROM users WHERE id = $1`, id)
-	err := row.Scan(&user.Id, &user.Email, &user.Password)
+	row := r.db.QueryRow(`SELECT id, name, email, password FROM users WHERE id = $1`, id)
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
 
 	switch {
 	case err == sql.ErrNoRows:
